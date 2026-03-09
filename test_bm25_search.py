@@ -4,6 +4,8 @@ from pyserini.search.lucene import LuceneSearcher
 
 searcher = LuceneSearcher('indexes/trec_covid_bm25_baseline')
 
+searcher.set_bm25(k1=0.9, b=0.4) # BM25 hyperparameters
+
 query = 'covid-19 in kids'
 hits = searcher.search(query)
 
