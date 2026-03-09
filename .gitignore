@@ -3,3 +3,5 @@
 *.docx
 *.txt
 .vscode/
+data_json/
+indexes/
