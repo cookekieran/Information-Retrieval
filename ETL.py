@@ -2,6 +2,7 @@ import ir_datasets
 import json
 import os
 import spacy
+from tqdm import tqdm
 
 dataset = ir_datasets.load("cord19/trec-covid/round1")
 nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
@@ -27,7 +28,7 @@ print("ETL pipeline complete.")
 
 
 with open('cleaned_data_json/cleaned_documents.jsonl', 'w', encoding='utf-8') as f:
-    for doc in dataset.docs_iter():
+    for doc in tqdm(dataset.docs_iter(), total=dataset.docs_count(), desc="Cleaning Documents", unit="doc"):
         t_lemmas = " ".join([t.lemma_.lower() for t in nlp(doc.title) if not t.is_stop and not t.is_punct])
         a_lemmas = " ".join([t.lemma_.lower() for t in nlp(doc.abstract) if not t.is_stop and not t.is_punct])
         
