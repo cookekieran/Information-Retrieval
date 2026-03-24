@@ -1,7 +1,15 @@
-Write-Host "Starting data preparation..."
+Write-Host "--- Step 1: Running ETL and Lemmatization ---"
 python ETL.py
 
-Write-Host "Starting indexing process..."
-python -m pyserini.index -collection JsonCollection -generator DefaultLuceneDocumentGenerator -threads 1 -input data_json -index indexes/trec_covid_bm25_baseline -storeRaw
+Write-Host "--- Building Lucene Index ---"
+python -m pyserini.index.lucene `
+  --collection JsonCollection `
+  --input data_cleaned `
+  --index indexes/trec_covid_lemmatized `
+  --generator DefaultLuceneDocumentGenerator `
+  --threads 4 `
+  --fields title abstract `
+  --analyzer whitespace `
+  --storePositions --storeDocvectors --storeRaw 
 
 Write-Host "Documents have been indexed."
