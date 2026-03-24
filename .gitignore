@@ -8,3 +8,4 @@ cleaned_data_json/
 indexes/
 *.pkl
 __pycache__
+scratch_bm25.py
