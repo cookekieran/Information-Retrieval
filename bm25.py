@@ -1,79 +1,32 @@
-from collections import defaultdict
 import spacy
-import numpy as np
-from functions import load_index
+from pyserini.search.lucene import LuceneSearcher
 
-index, doc_length_dict = load_index()
-
-# index statistics
-n_documents = len(doc_length_dict)
-doc_length = sum(doc['body'] for doc in doc_length_dict.values())
-avgdl = doc_length / n_documents
-
-# pre-processor
+searcher = LuceneSearcher('indexes/trec_covid_lemmatized')
+searcher.set_bm25(k1=0.9, b=0.4)
 nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
 
-def calc_bm25(tf, idf, doc_id, field, k=1.5, b=0.75):
-    numerator = tf * (k + 1)
-    denominator = tf + k * (1 - b + b * (doc_length_dict[doc_id][field] / avgdl))
-    bm25_score = idf * (numerator / denominator)  
-    return bm25_score    
-
-
-def run_bm25_search(query, index, n_documents, nlp=nlp, top_n=10):
+def search_trec_covid(query, k=5):
     """
-    Processes a query and returns a ranked list of documents using BM25.
-    """
-    # 1. Preprocess the query
-    doc = nlp(query)
-    query_processed_tokens = [token.lemma_.lower() for token in doc if not token.is_stop]
+    Cleans a raw query and searches the lemmatized Lucene index.
     
-    final_scores = defaultdict(lambda: {"body": 0.0, "title": 0.0})
-
-    # 2. Calculate scores per word
-    for word in query_processed_tokens:
-        if word not in index:
-            continue
-
-        # Document Frequency calculations
-        n_q_title = sum(counts.get('title', 0) for counts in index[word].values())
-        n_q_body = sum(counts.get('body', 0) for counts in index[word].values())
-
-        # IDF calculations
-        idf_title = np.log(((n_documents - n_q_title + 0.5) / (n_q_title + 0.5)) + 1)
-        idf_body = np.log(((n_documents - n_q_body + 0.5) / (n_q_body + 0.5)) + 1)
+    Args:
+        query (str): The natural language query.
+        k (int): Number of documents to return.
         
-        print(f"Word: {word} | Title DF: {n_q_title} | Body DF: {n_q_body}")
+    Returns:
+        list: A list of pyserini.search.lucene.JHit objects.
+    """
+    clean_query = " ".join([
+        t.lemma_.lower() for t in nlp(query) 
+        if not t.is_stop and not t.is_punct
+    ])
+    
+    hits = searcher.search(clean_query, k=k)
+    return hits
 
-        for doc_id, tf in index[word].items():
-            tf_body = tf.get("body", 0)
-            tf_title = tf.get("title", 0)
+raw_query = "covid-19 in kids"
+results = search_trec_covid(raw_query, k=10)
 
-            # Calculate BM25 for body and title
-            body_bm25_score = calc_bm25(tf_body, idf_body, doc_id, "body")
-            title_bm25_score = calc_bm25(tf_title, idf_title, doc_id, "title")
-
-            final_scores[doc_id]["body"] += body_bm25_score
-            final_scores[doc_id]["title"] += title_bm25_score
-
-    # 3. Sort and Display Results
-    print("\n--- Final BM25 Ranking ---\n")
-    print(f"{'Doc ID':<12} | {'Body Score':<12} | {'Title Score':<12} | {'Total Score'}")
-    print("-" * 60)
-
-    sorted_results = sorted(
-        final_scores.items(), 
-        key=lambda x: x[1]['body'] + x[1]['title'], 
-        reverse=True
-    )
-
-    # Print only the top_n results
-    for doc_id, scores in sorted_results[:top_n]:
-        body = scores['body']
-        title = scores['title']
-        total = body + title
-        print(f"{doc_id:<12} | {body:<12.4f} | {title:<12.4f} | {total:.4f}")
-
-    return sorted_results
-
-results = run_bm25_search("find allow reflecting", index, n_documents, nlp, top_n=5)
+print(f"Top results for: {raw_query}")
+for i, hit in enumerate(results):
+    print(f'{i+1:2} {hit.docid:15} {hit.score:.5f}')
