@@ -6,3 +6,4 @@
 data_json/
 indexes/
 *.pkl
+__pycache__
