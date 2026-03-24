@@ -4,7 +4,7 @@ python ETL.py
 Write-Host "--- Building Lucene Index ---"
 python -m pyserini.index.lucene `
   --collection JsonCollection `
-  --input data_cleaned `
+  --input cleaned_data_json `
   --index indexes/trec_covid_lemmatized `
   --generator DefaultLuceneDocumentGenerator `
   --threads 4 `
