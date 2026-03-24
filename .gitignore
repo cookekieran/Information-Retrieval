@@ -3,7 +3,8 @@
 *.docx
 *.txt
 .vscode/
-data_json/
+raw_data_json/
+cleaned_data_json/
 indexes/
 *.pkl
 __pycache__
