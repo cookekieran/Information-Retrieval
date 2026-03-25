@@ -10,3 +10,4 @@ indexes/
 __pycache__
 scratch_bm25.py
 build_index.py
+*.zip
