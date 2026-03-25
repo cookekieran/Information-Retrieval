@@ -1,3 +1,9 @@
+import os
+
+# ignore java warnings
+os.environ['JDK_JAVA_OPTIONS'] = '--add-modules jdk.incubator.vector'
+
+import json
 import spacy
 from pyserini.search.lucene import LuceneSearcher
 
@@ -24,9 +30,17 @@ def search_trec_covid(query, k=5):
     hits = searcher.search(clean_query, k=k)
     return hits
 
-raw_query = "covid-19 in kids"
-results = search_trec_covid(raw_query, k=10)
+if __name__ == "__main__":
+    raw_query = "covid-19 in kids"
+    results = search_trec_covid(raw_query, k=3)
 
-print(f"Top results for: {raw_query}")
-for i, hit in enumerate(results):
-    print(f'{i+1:2} {hit.docid:15} {hit.score:.5f}')
+    for i, hit in enumerate(results):
+        doc = searcher.doc(hit.docid)
+        doc_data = json.loads(doc.raw())
+        title = doc_data.get('title', 'No Title Found')
+        
+        print(f"Rank:  {i+1}")
+        print(f"ID:    {hit.docid}")
+        print(f"Score: {hit.score:.4f}")
+        print(f"Title: {title}")
+        print("-" * 30)
