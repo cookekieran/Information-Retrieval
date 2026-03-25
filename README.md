@@ -60,6 +60,15 @@ python -m spacy download en_core_web_sm
 
 The Lucene index is not included in Git due to its size.
 
+If you want to build the index from scratch, follow these steps. This process lemmatizes the raw data and then builds a Lucene index with stored vectors for BM25.
+
+From the project root, run the PowerShell script:
+
+```powershell
+./build_index.ps1
+
+**OR**
+
 - Ensure you have the `trec_covid_lemmatized` folder  
 - Place it inside an `indexes/` directory at the root of this project  
 
