@@ -2,7 +2,7 @@ import spacy
 from pyserini.search.lucene import LuceneSearcher
 
 searcher = LuceneSearcher('indexes/trec_covid_lemmatized')
-searcher.set_bm25(k1=0.9, b=0.4)
+searcher.set_bm25(k1=1.2, b=0.75)
 nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
 
 def search_trec_covid_bm25f(query, k=5, title_weight=2.0, abstract_weight=1.0):
